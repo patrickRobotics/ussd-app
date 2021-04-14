@@ -1,0 +1,81 @@
+initial_screen:
+  next_screen: borrower_lookup
+  type: initial_screen
+  variables:
+    file: ./sample_configs.yml
+    namespace: variable_testing
+  create_ussd_variables:
+    name: "mwas"
+    hobbies: []
+    environment: "{{ENVIRONMENT}}"
+
+borrower_lookup:
+  type: http_screen
+  next_screen: update_borrower_session_data
+  session_key: borrower_data
+  http_request:
+    method: get
+    url: "{{ api_host }}/borrowers/lookup/{{ phone_number }}/"
+    verify: true
+    timeout: 30
+    headers:
+      APIKEY: "{{ api_key }}"
+      content-type: application/json
+
+update_borrower_session_data:
+  type: update_session_screen
+  next_screen: menu_screen
+  values_to_update:
+    - key: customer_status
+      value: "{{ borrower_data.status }}"
+    - key: loan_limit
+      value: "{{borrower_data.loan_limit}}"
+
+menu_screen:
+  type: menu_screen
+  text: Welcome to CrediStock, choose item to continue
+  error_message: |
+    You have selected invalid option try again
+  options:
+    - text: option one
+      next_screen: enter_name
+    - text: option two
+      next_screen: enter_age
+
+enter_name:
+  type: input_screen
+  text: Enter your name
+  input_identifier: name
+  next_screen: enter_age
+
+enter_age:
+  type: input_screen
+  text: Enter your age
+  input_identifier: age
+  next_screen: http_request_loan
+
+http_request_loan:
+  type: http_screen
+  next_screen: show_details
+  session_key: loan_application
+  http_request:
+    method: post
+    url: "{{ api_host }}/loans"
+    json:
+      principal: "{{ age }}"
+      interest_rate: "12"
+      session_id: "{{ session_id }}"
+      ref: "PO2"
+      session: "{{ session }}"
+    verify: true
+    timeout: 30
+    headers:
+      APIKEY: "{{ api_key }}"
+      content-type: application/json
+
+show_details:
+  type: quit_screen
+  text: You have entered name as {{name}} and age as {{age}}.
+    Testing response is being saved in session for {{customer_status}} status code is
+    {{loan_application.status_code}} and balance is
+    {{loan_application.balance}} and full content {{loan_application.content}}.
