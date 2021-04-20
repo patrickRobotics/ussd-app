@@ -123,4 +123,4 @@ STATIC_URL = '/static/'
 API_HOST = os.environ["API_HOST"]
 API_KEY = os.environ["API_KEY"]
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
-DEFAULT_USSD_SCREEN_JOURNEY = "/Users/patrick.irungu/Projects/PIN/ussd-app/screens.yaml"
+DEFAULT_USSD_SCREEN_JOURNEY = os.path.join(BASE_DIR, 'screens.yml')
