@@ -1,81 +1,66 @@
 initial_screen:
-  next_screen: borrower_lookup
   type: initial_screen
+  next_screen: borrower_lookup
   variables:
     file: ./sample_configs.yml
-    namespace: variable_testing
-  create_ussd_variables:
-    name: "mwas"
-    hobbies: []
-    environment: "{{ENVIRONMENT}}"
+    namespace: env_variables
 
 borrower_lookup:
   type: http_screen
-  next_screen: update_borrower_session_data
+  next_screen: screen_one
   session_key: borrower_data
   http_request:
     method: get
-    url: "{{ api_host }}/borrowers/lookup/{{ phone_number }}/"
+    url: "{{ API_HOST }}/borrowers/lookup/{{ phone_number }}"
     verify: true
     timeout: 30
     headers:
-      APIKEY: "{{ api_key }}"
+      APIKEY: "{{ API_KEY }}"
       content-type: application/json
 
-update_borrower_session_data:
+screen_one:
   type: update_session_screen
-  next_screen: menu_screen
+  next_screen: screen_two
   values_to_update:
-    - key: customer_status
-      value: "{{ borrower_data.status }}"
+    - expression: "{{borrower_data.status == 'active'}}"
+      key: customer_status
+      value: active
     - key: loan_limit
       value: "{{borrower_data.loan_limit}}"
+    - key: aged_24
+      value: "{{[]}}"
+    - key: height_54
+      value: "{{[]}}"
 
-menu_screen:
-  type: menu_screen
-  text: Welcome to CrediStock, choose item to continue
-  error_message: |
-    You have selected invalid option try again
-  options:
-    - text: option one
-      next_screen: enter_name
-    - text: option two
-      next_screen: enter_age
+screen_two:
+  type: update_session_screen
+  next_screen: show_saved_status
+  with_items:
+    - name: Francis Mwangi
+      age: 24
+      height: 5.4
+    - name: Isaac Karanja
+      age: 22
+      height: 5.4
+    - name: Stephen Gitigi
+      age: 20
+      height: 5.5
+    - name: Wambui
+      age: 24
+      height: 5.4
+  values_to_update:
+    - expression: "{{item.age == 24}}"
+      key: aged_24
+      value: "{{aged_24|append(item)}}"
+    - expression: "{{item.height == 5.4}}"
+      key: "height_54"
+      value: "{{height_54|append(item)}}"
 
-enter_name:
-  type: input_screen
-  text: Enter your name
-  input_identifier: name
-  next_screen: enter_age
-
-enter_age:
-  type: input_screen
-  text: Enter your age
-  input_identifier: age
-  next_screen: http_request_loan
-
-http_request_loan:
-  type: http_screen
-  next_screen: show_details
-  session_key: loan_application
-  http_request:
-    method: post
-    url: "{{ api_host }}/loans"
-    json:
-      principal: "{{ age }}"
-      interest_rate: "12"
-      session_id: "{{ session_id }}"
-      ref: "PO2"
-      session: "{{ session }}"
-    verify: true
-    timeout: 30
-    headers:
-      APIKEY: "{{ api_key }}"
-      content-type: application/json
-
-show_details:
+show_saved_status:
   type: quit_screen
-  text: You have entered name as {{name}} and age as {{age}}.
-    Testing response is being saved in session for {{customer_status}} status code is
-    {{loan_application.status_code}} and balance is
-    {{loan_application.balance}} and full content {{loan_application.content}}.
+  text: |
+    The customer status is {{customer_status}} ({{borrower_data.status}}).
+    Loan limit is {{loan_limit}} ({{borrower_data.loan_limit}})
+    Response status {{borrower_data.status_code}}
+    People aged 24 {{aged_24}}
+    People with height 5.4 {{height_54}}
