@@ -1,2 +1,2 @@
-api_host: http://localhost:8080/api/v2
-api_key: a1b2c3d4e5
+loan_ref: PO2
+interest_rate: 7
