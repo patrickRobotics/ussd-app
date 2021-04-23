@@ -1,7 +1,7 @@
 # ussd-app 
 This is a simple Django USSD application built on [ussd_airflow](https://django-ussd-airflow.readthedocs.io/) library
 
-The only package required in requrements.txt if `ussd_airflow`
+The only package required in requirements.txt is `ussd_airflow`
 
 ## Project Setup
 Using virtualenv for now

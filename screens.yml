@@ -20,17 +20,34 @@ borrower_lookup:
 
 screen_one:
   type: update_session_screen
-  next_screen: screen_two
+  next_screen: validate_input
   values_to_update:
     - expression: "{{borrower_data.status == 'active'}}"
       key: customer_status
       value: active
-    - key: loan_limit
+    - expression: "{{borrower_data.status == 'active'}}"
+      key: loan_limit
       value: "{{borrower_data.loan_limit}}"
     - key: aged_24
       value: "{{[]}}"
     - key: height_54
       value: "{{[]}}"
+
+validate_input:
+  type: input_screen
+  text: Enter your age
+  input_identifier: age
+  next_screen: screen_two
+  options:
+    - text: Quit
+      next_screen: show_saved_status
+  validators:
+    - regex: ^[0-9]{1,7}$
+      text: Only nubers are allowed
+    - expression: ussd_request.input|int <= 100
+      text: Number below 100 is not allowed
+    - expression: ussd_request.input|int >= 100000
+      text: Number over 100000 is not allowed
 
 screen_two:
   type: update_session_screen
